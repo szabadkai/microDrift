@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://c7t2cf8yf478l"
+path="res://.godot/imported/truck-flat.obj-1f792029cd7342ee56faf9f28a0ccb60.mesh"
+
+[deps]
+
+files=["res://.godot/imported/truck-flat.obj-1f792029cd7342ee56faf9f28a0ccb60.mesh"]
+
+source_file="res://kenney_car-kit/Models/OBJ format/truck-flat.obj"
+dest_files=["res://.godot/imported/truck-flat.obj-1f792029cd7342ee56faf9f28a0ccb60.mesh", "res://.godot/imported/truck-flat.obj-1f792029cd7342ee56faf9f28a0ccb60.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

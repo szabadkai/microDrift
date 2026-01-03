@@ -1,0 +1,68 @@
+[gd_scene load_steps=4 format=3 uid="uid://c8qxqkj5xnvfl"]
+
+[ext_resource type="Script" uid="uid://bk52o556yqt5t" path="res://scripts/vehicles/drift_car.gd" id="1_drift_car"]
+[ext_resource type="PackedScene" uid="uid://n6xydlbid384" path="res://kenney_car-kit/Models/GLB format/sedan-sports.glb" id="2_sedan_sports"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_body"]
+size = Vector3(1.2786133, 0.63735354, 2.5666993)
+
+[node name="DriftCar" type="VehicleBody3D"]
+mass = 150.0
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, -0.4, 0)
+script = ExtResource("1_drift_car")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00034175813, 0.49936503, 0.09067392)
+shape = SubResource("BoxShape3D_body")
+
+[node name="CarModel" parent="." instance=ExtResource("2_sedan_sports")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="FrontLeftWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6065728, 0.2980025, -0.65662163)
+use_as_steering = true
+wheel_radius = 0.3
+wheel_rest_length = 0.08
+wheel_friction_slip = 3.5
+suspension_travel = 0.10
+suspension_stiffness = 50.0
+suspension_max_force = 10000.0
+damping_compression = 4.0
+damping_relaxation = 5.0
+
+[node name="FrontRightWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.59920126, 0.3095627, -0.67466456)
+use_as_steering = true
+wheel_radius = 0.3
+wheel_rest_length = 0.08
+wheel_friction_slip = 3.5
+suspension_travel = 0.10
+suspension_stiffness = 50.0
+suspension_max_force = 10000.0
+damping_compression = 4.0
+damping_relaxation = 5.0
+
+[node name="RearLeftWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.44888854, 0.28828794, 0.6618045)
+use_as_traction = true
+wheel_radius = 0.3
+wheel_rest_length = 0.08
+wheel_friction_slip = 3.5
+suspension_travel = 0.10
+suspension_stiffness = 50.0
+suspension_max_force = 10000.0
+damping_compression = 4.0
+damping_relaxation = 5.0
+
+[node name="RearRightWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4358166, 0.29537943, 0.6520397)
+use_as_traction = true
+wheel_radius = 0.3
+wheel_rest_length = 0.08
+wheel_friction_slip = 3.5
+suspension_travel = 0.2
+suspension_stiffness = 100.0
+suspension_max_force = 3000.0
+damping_compression = 4.0
+damping_relaxation = 5.0
