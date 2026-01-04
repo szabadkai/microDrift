@@ -9,10 +9,10 @@ class_name DriftCar
 
 # Physics tuning - Arcade style
 @export_group("Speed")
-@export var max_speed: float = 30.0  # m/s - higher top speed
-@export var engine_power: float = 3000.0  # balanced acceleration
+@export var max_speed: float = 10.0  # m/s - reduced top speed
+@export var engine_power: float = 200.0  # reduced acceleration for better control
 @export var brake_power: float = 1500.0  # responsive braking
-@export var reverse_power: float = 1500.0  # snappy reverse
+@export var reverse_power: float = 100.0  # snappy reverse
 
 @export_group("Steering")
 @export var max_steer_angle: float = 0.6  # radians - tighter turns
