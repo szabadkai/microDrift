@@ -1,0 +1,84 @@
+[gd_scene load_steps=6 format=3 uid="uid://1gahc6iuom1c"]
+
+[ext_resource type="Script" uid="uid://bk52o556yqt5t" path="res://scripts/vehicles/drift_car.gd" id="1_drift_car"]
+[ext_resource type="PackedScene" uid="uid://dcsmjgq0to5u4" path="res://kenney_car-kit/Models/GLB format/sedan.glb" id="2_sedan"]
+[ext_resource type="PackedScene" uid="uid://cvt85b4cr8eee" path="res://kenney_car-kit/Models/GLB format/wheel-racing.glb" id="3_wheel_racing"]
+[ext_resource type="Script" uid="uid://wutqab0gu0m" path="res://scripts/car_audio_manager.gd" id="4_audio_manager"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_body"]
+size = Vector3(1.3, 0.6, 2.6)
+
+[node name="DriftCar" type="VehicleBody3D"]
+mass = 30.0
+center_of_mass_mode = 1
+center_of_mass = Vector3(0, -0.2, 0)
+script = ExtResource("1_drift_car")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_body")
+
+[node name="CarModel" parent="." instance=ExtResource("2_sedan")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0)
+
+[node name="FrontLeftWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0.3, -0.66)
+use_as_steering = true
+wheel_radius = 0.3
+wheel_rest_length = 0.08
+wheel_friction_slip = 3.5
+suspension_travel = 0.1
+suspension_stiffness = 100.0
+suspension_max_force = 10000.0
+damping_compression = 8.0
+damping_relaxation = 9.0
+
+[node name="Visual" parent="FrontLeftWheel" instance=ExtResource("3_wheel_racing")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.051781178, 0, 0)
+
+[node name="FrontRightWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.3, -0.66)
+use_as_steering = true
+wheel_radius = 0.3
+wheel_rest_length = 0.08
+wheel_friction_slip = 3.5
+suspension_travel = 0.1
+suspension_stiffness = 100.0
+suspension_max_force = 10000.0
+damping_compression = 8.0
+damping_relaxation = 9.0
+
+[node name="Visual" parent="FrontRightWheel" instance=ExtResource("3_wheel_racing")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.046145916, 0, 0)
+
+[node name="RearLeftWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0.3, 0.66)
+use_as_traction = true
+wheel_radius = 0.3
+wheel_rest_length = 0.08
+wheel_friction_slip = 3.5
+suspension_travel = 0.1
+suspension_stiffness = 100.0
+suspension_max_force = 10000.0
+damping_compression = 8.0
+damping_relaxation = 9.0
+
+[node name="Visual" parent="RearLeftWheel" instance=ExtResource("3_wheel_racing")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+
+[node name="RearRightWheel" type="VehicleWheel3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.3, 0.66)
+use_as_traction = true
+wheel_radius = 0.3
+wheel_rest_length = 0.08
+wheel_friction_slip = 3.5
+suspension_travel = 0.1
+suspension_stiffness = 100.0
+suspension_max_force = 10000.0
+damping_compression = 8.0
+damping_relaxation = 9.0
+
+[node name="Visual" parent="RearRightWheel" instance=ExtResource("3_wheel_racing")]
+
+[node name="CarAudioManager" type="Node" parent="."]
+script = ExtResource("4_audio_manager")

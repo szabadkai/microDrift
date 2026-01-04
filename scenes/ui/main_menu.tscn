@@ -1,0 +1,132 @@
+[gd_scene load_steps=4 format=3 uid="uid://oa1t7v33prqq"]
+
+[ext_resource type="Script" uid="uid://63wucvh4mqbu" path="res://scripts/ui/main_menu.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://c8qxqkj5xnvfl" path="res://scenes/vehicles/drift_car.tscn" id="2_car"]
+
+[sub_resource type="Environment" id="Environment_menu"]
+background_mode = 1
+background_color = Color(0.1, 0.1, 0.1, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+background_model_path = NodePath("BackgroundLayer/SubViewport/World/DriftCar")
+
+[node name="BackgroundLayer" type="SubViewportContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="BackgroundLayer"]
+handle_input_locally = false
+size = Vector2i(1152, 648)
+render_target_update_mode = 4
+
+[node name="World" type="Node3D" parent="BackgroundLayer/SubViewport"]
+
+[node name="Camera3D" type="Camera3D" parent="BackgroundLayer/SubViewport/World"]
+transform = Transform3D(0.707107, -0.353553, 0.612372, 0, 0.866025, 0.5, -0.707107, -0.353553, 0.612372, 4, 3, 4)
+current = true
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="BackgroundLayer/SubViewport/World"]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 10, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="BackgroundLayer/SubViewport/World"]
+environment = SubResource("Environment_menu")
+
+[node name="DriftCar" parent="BackgroundLayer/SubViewport/World" instance=ExtResource("2_car")]
+player_index = null
+max_speed = null
+engine_power = null
+brake_power = null
+reverse_power = null
+car_color = null
+max_steer_angle = null
+steer_speed = null
+steer_return_speed = null
+high_speed_steer_damp = null
+base_friction = null
+drift_friction = null
+drift_charge_rate = null
+max_drift_charge = null
+min_boost_charge = null
+blue_boost_threshold = null
+orange_boost_threshold = null
+blue_boost_impulse = null
+orange_boost_impulse = null
+downforce_factor = null
+
+[node name="UILayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="UILayer"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 400.0
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UILayer/Panel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -200.0
+offset_right = 150.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="Title" type="Label" parent="UILayer/Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "MicroDrift"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="UILayer/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="SinglePlayerButton" type="Button" parent="UILayer/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "SINGLE PLAYER"
+
+[node name="MultiplayerButton" type="Button" parent="UILayer/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "MULTIPLAYER"
+
+[node name="QuitButton" type="Button" parent="UILayer/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "QUIT"
+
+[node name="Footer" type="Label" parent="UILayer/Panel/VBoxContainer"]
+layout_mode = 2
+text = "v0.1.0 pre-alpha"
+horizontal_alignment = 1

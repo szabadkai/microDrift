@@ -1,0 +1,62 @@
+[gd_scene load_steps=5 format=3 uid="uid://d4ln3mmns2axc"]
+
+[ext_resource type="MeshLibrary" path="res://racing_kit_meshlib.tres" id="1_88f0t"]
+[ext_resource type="PackedScene" uid="uid://c8qxqkj5xnvfl" path="res://scenes/vehicles/drift_car.tscn" id="2_drift_car"]
+[ext_resource type="Script" uid="uid://clisknmj5tm3i" path="res://scripts/follow_camera.gd" id="3_follow_camera"]
+[ext_resource type="Script" path="res://scripts/track_editor_test.gd" id="4_test_controller"]
+
+[node name="TrackEditorTest" type="Node3D"]
+script = ExtResource("4_test_controller")
+
+[node name="GridMap" type="GridMap" parent="."]
+transform = Transform3D(16, 0, 0, 0, 16, 0, 0, 0, 16, 0, 0, 0)
+mesh_library = ExtResource("1_88f0t")
+cell_size = Vector3(1, 0.5, 1)
+cell_center_y = false
+collision_layer = 255
+collision_mask = 255
+data = {
+"cells": PackedInt32Array(20, 65499, 1441810, 65526, 8, 1441804, 65527, 7, 1048601, 65527, 9, 1441817, 65528, 7, 1048601, 65528, 9, 1441817, 65529, 7, 1048601, 65529, 9, 1441817, 65530, 7, 1048601, 65530, 9, 1441817, 65531, 7, 1048601, 65531, 9, 1441814, 65532, 2, 655379, 65532, 3, 655385, 65532, 4, 655385, 65532, 5, 655385, 65532, 6, 655385, 65532, 7, 19, 65532, 9, 1441817, 65533, 2, 1441817, 65533, 9, 1441817, 65534, 2, 1441817, 65534, 9, 1441817, 65535, 2, 1441817, 0, 2, 1441817, 0, 10, 1048608, 1, 2, 1441817, 2, 2, 1441817, 2, 13, 1441824, 3, 2, 1441817, 4, 2, 1048598, 4, 14, 1048601, 5, 2, 1441817, 5, 14, 1441814, 6, 2, 1441817, 6, 14, 1048601, 7, 2, 1441817, 8, 2, 1441794, 8, 13, 32, 9, 2, 1048601, 9, 9, 25, 9, 10, 25, 9, 11, 25, 10, 2, 1048601, 10, 7, 655392, 11, 2, 1048601, 12, 2, 1048601, 12, 6, 1441814, 13, 2, 1048601, 13, 6, 1441817, 14, 6, 1441817, 15, 3, 1048608, 15, 6, 1048601, 16, 5, 655385, 16, 6, 19)
+}
+metadata/_editor_floor_ = Vector3(0, 0, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, -0.75, 0.433013, 0, 10, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+
+[node name="Player1Car" parent="." instance=ExtResource("2_drift_car")]
+transform = Transform3D(-0.10871071, 0, -0.99407345, 0, 1, 0, 0.99407345, 0, -0.10871071, -0.20174384, 1.2566993, 40.273262)
+mass = 30.0
+center_of_mass = Vector3(0, -0.2, 0)
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.5, 0.866025, 0, -0.866025, 0.5, 0, 20, 15)
+fov = 50.0
+script = ExtResource("3_follow_camera")
+target_path = NodePath("../Player1Car")
+follow_speed = 6.0
+
+[node name="DebugUI" type="CanvasLayer" parent="."]
+
+[node name="SpeedLabel" type="Label" parent="DebugUI"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 50.0
+text = "Speed: 0 m/s"
+
+[node name="DriftLabel" type="Label" parent="DebugUI"]
+offset_left = 20.0
+offset_top = 50.0
+offset_right = 200.0
+offset_bottom = 80.0
+text = "Drift Charge: 0%"
+
+[node name="BoostLabel" type="Label" parent="DebugUI"]
+offset_left = 20.0
+offset_top = 80.0
+offset_right = 200.0
+offset_bottom = 110.0
+text = "Boost: None"

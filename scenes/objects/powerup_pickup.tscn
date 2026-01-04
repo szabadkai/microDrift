@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3 uid="uid://powerupscn01"]
+
+[ext_resource type="Script" path="res://scripts/objects/powerup_pickup.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://c8i3dtrxhpndp" path="res://kenney_car-kit/Models/GLB format/box.glb" id="2_box"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pickup"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_glow"]
+albedo_color = Color(1, 0.8, 0.2, 1)
+emission_enabled = true
+emission = Color(1, 0.5, 0, 1)
+emission_energy_multiplier = 2.0
+
+[node name="PowerupPickup" type="Area3D"]
+script = ExtResource("1_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_pickup")
+
+[node name="Model" parent="." instance=ExtResource("2_box")]
+transform = Transform3D(0.7, 0, 0, 0, 0.7, 0, 0, 0, 0.7, 0, 0.5, 0)
+
+[node name="RespawnTimer" type="Timer" parent="."]
+wait_time = 5.0
+one_shot = true

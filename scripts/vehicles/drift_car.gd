@@ -32,7 +32,6 @@ class_name DriftCar
 @export var orange_boost_impulse: float = 4.0  # noticeable but not crazy
 
 @export_group("Downforce")
-@export_group("Downforce")
 @export var downforce_factor: float = 400.0  # stronger downforce for stability
 
 # Node references
@@ -115,7 +114,6 @@ func _handle_input(delta: float) -> void:
   # Determine if we're moving forward or backward relative to car facing
   var forward_dir = -global_transform.basis.z
   var moving_forward = linear_velocity.dot(forward_dir) > 0.5
-  var moving_backward = linear_velocity.dot(forward_dir) < -0.5
   var nearly_stopped = current_speed < 1.0
   
   if throttle > 0.0:
@@ -201,7 +199,7 @@ func _apply_boost(tier: BoostTier) -> void:
     _:
       return
   
-    # Apply forward impulse (our visual front is -Z due to model rotation)
+  # Apply forward impulse (our visual front is -Z due to model rotation)
   var forward_dir = -global_transform.basis.z
   apply_central_impulse(forward_dir * impulse_strength * mass)
   boost_activated.emit(tier)

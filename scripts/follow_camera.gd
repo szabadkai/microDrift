@@ -71,7 +71,7 @@ func _physics_process(delta: float) -> void:
 func _update_camera_transform() -> void:
   # Position camera above the focus point, offset back based on angle
   var angle_rad = deg_to_rad(camera_angle.x)
-  var back_offset = height / tan(-angle_rad) if angle_rad != 0 else 0
+  var back_offset = height / tan(-angle_rad) if angle_rad != 0 else 0.0
   
   global_position = camera_focus + Vector3(0, height, back_offset)
   

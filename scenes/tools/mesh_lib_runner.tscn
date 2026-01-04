@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c6t5q1o2p3m4r"]
+
+[ext_resource type="Script" uid="uid://dxsit0k2l6n84" path="res://scripts/tools/mesh_lib_generator.gd" id="1_generator"]
+
+[node name="MeshLibRunner" type="Node"]
+script = ExtResource("1_generator")

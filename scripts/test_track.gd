@@ -3,17 +3,37 @@ extends Node3D
 ## Test track scene for vehicle tuning
 ## Updates debug UI with vehicle state
 
-@onready var player_car: DriftCar = $Player1Car
+var player_car: DriftCar
 @onready var speed_label: Label = $DebugUI/SpeedLabel
 @onready var drift_label: Label = $DebugUI/DriftLabel
 @onready var boost_label: Label = $DebugUI/BoostLabel
 
 
 func _ready() -> void:
+  # Start race music
+  MusicManager.play_track(MusicManager.MusicTrack.RANDOM)
+  
+  # Auto-detect player car
+  player_car = _find_drift_car(self)
+  
+  if not player_car:
+    printerr("TestTrack: No DriftCar found in scene!")
+    return
+  
   # Connect to car signals for visual feedback
   player_car.drift_started.connect(_on_drift_started)
   player_car.drift_ended.connect(_on_drift_ended)
   player_car.boost_activated.connect(_on_boost_activated)
+
+
+func _find_drift_car(node: Node) -> DriftCar:
+  if node is DriftCar:
+    return node
+  for child in node.get_children():
+    var result = _find_drift_car(child)
+    if result:
+      return result
+  return null
 
 
 func _process(_delta: float) -> void:

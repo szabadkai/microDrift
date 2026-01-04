@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://b45ns5hj047lj"]
+
+[ext_resource type="PackedScene" uid="uid://kk0yah8af8wd" path="res://racing-Kit/barrierRed.gltf" id="1_70acc"]
+
+[node name="Track01" type="Node2D"]
+
+[node name="barrierRed2" parent="." instance=ExtResource("1_70acc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4620845, 0.20177138, 1.5834723)
