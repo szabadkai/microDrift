@@ -1,6 +1,6 @@
 [gd_scene load_steps=21 format=3 uid="uid://bvmdwpy2m7yvv"]
 
-[ext_resource type="PackedScene" path="res://scenes/vehicles/drift_car_race.tscn" id="1_drift_car"]
+[ext_resource type="PackedScene" uid="uid://b5hiwwkyutf40" path="res://scenes/vehicles/drift_car_race.tscn" id="1_drift_car"]
 [ext_resource type="Script" uid="uid://2tih30gdg6mv" path="res://scripts/test_track.gd" id="2_test_track"]
 [ext_resource type="Script" uid="uid://clisknmj5tm3i" path="res://scripts/follow_camera.gd" id="3_follow_camera"]
 [ext_resource type="PackedScene" uid="uid://dacdpuoc1dit6" path="res://kenney_car-kit/Models/GLB format/cone.glb" id="4_cone"]
@@ -119,6 +119,10 @@ shape = SubResource("BoxShape3D_wall")
 
 [node name="player" parent="." instance=ExtResource("1_drift_car")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14.8134, -0.0439264, 0)
+engine_power = 550.0
+brake_power = 555.0
+steer_speed = 2.0
+boost_impulse_strength = 30.0
 
 [node name="Obstacles" type="Node3D" parent="."]
 
