@@ -20,7 +20,7 @@ func _ready() -> void:
     printerr("TestTrack: No DriftCar found in scene!")
     return
   
-  # Connect to car signals for visual feedback
+  # Connect to car signals forwww visual feedback
   player_car.drift_started.connect(_on_drift_started)
   player_car.drift_ended.connect(_on_drift_ended)
   player_car.boost_activated.connect(_on_boost_activated)

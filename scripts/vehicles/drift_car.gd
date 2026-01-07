@@ -119,6 +119,9 @@ var held_powerup: String = ""
 ## Visual yaw offset for mesh (exaggerated drift angle)
 var visual_yaw_offset: float = 0.0
 
+# DEBUG: Timer to limit debug spam
+var _debug_timer: float = 0.0
+
 # Input action names
 var input_accelerate: String
 var input_brake: String
@@ -152,10 +155,28 @@ func _ready() -> void:
   input_steer_right = prefix + "steer_right"
   input_handbrake = prefix + "handbrake"
   input_use_item = prefix + "use_item"
+  
+  # DEBUG: Check if input actions exist
+  print("=== DriftCar Input Debug ===")
+  print("Player index: ", player_index)
+  print("Looking for action: ", input_accelerate, " - exists: ", InputMap.has_action(input_accelerate))
+  print("Looking for action: ", input_brake, " - exists: ", InputMap.has_action(input_brake))
+  print("Looking for action: ", input_steer_left, " - exists: ", InputMap.has_action(input_steer_left))
+  print("Looking for action: ", input_steer_right, " - exists: ", InputMap.has_action(input_steer_right))
+  print("Looking for action: ", input_handbrake, " - exists: ", InputMap.has_action(input_handbrake))
 
 
 func _physics_process(delta: float) -> void:
   current_speed = linear_velocity.length()
+  
+  # DEBUG: Log inputs for first 3 seconds
+  _debug_timer += delta
+  if _debug_timer < 3.0 and fmod(_debug_timer, 0.5) < delta:
+    var accel = Input.get_action_strength(input_accelerate)
+    var brake_in = Input.get_action_strength(input_brake)
+    var steer_l = Input.get_action_strength(input_steer_left)
+    var steer_r = Input.get_action_strength(input_steer_right)
+    print("INPUT: accel=", accel, " brake=", brake_in, " steerL=", steer_l, " steerR=", steer_r, " speed=", current_speed)
   
   # State machine update
   match current_state:
@@ -163,6 +184,7 @@ func _physics_process(delta: float) -> void:
       _process_normal_state(delta)
     VehicleState.DRIFTING:
       _process_drifting_state(delta)
+      _spawn_tire_marks()  # Spawn marks while drifting
     VehicleState.BOOSTING:
       _process_boosting_state(delta)
   
@@ -295,6 +317,9 @@ func _enter_drifting_state() -> void:
   print(">>> ENTERING DRIFT STATE <<<")
   current_state = VehicleState.DRIFTING
   drift_charge = 0.0
+  
+  # Reset tire marks so this drift session starts completely fresh
+  _reset_tire_marks()
   
   # ARCADE: Reduce rear wheel friction for slides (but not too low)
   _set_rear_wheel_friction(0.4)
@@ -494,6 +519,72 @@ func _set_rear_wheel_friction(friction: float) -> void:
     rear_left_wheel.wheel_friction_slip = friction
   if rear_right_wheel:
     rear_right_wheel.wheel_friction_slip = friction
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# TIRE MARKS
+# ════════════════════════════════════════════════════════════════════════════
+
+var _tire_mark_timer: float = 0.0
+var _last_left_pos: Vector3 = Vector3.ZERO
+var _last_right_pos: Vector3 = Vector3.ZERO
+var _tire_mark_active: bool = false
+const TIRE_MARK_INTERVAL: float = 0.025
+
+func _spawn_tire_marks() -> void:
+  _tire_mark_timer += get_physics_process_delta_time()
+  if _tire_mark_timer < TIRE_MARK_INTERVAL:
+    return
+  _tire_mark_timer = 0.0
+  
+  var left_pos = rear_left_wheel.global_position if rear_left_wheel else global_position
+  var right_pos = rear_right_wheel.global_position if rear_right_wheel else global_position
+  
+  # Only draw if we have previous positions and are moving
+  if _tire_mark_active and current_speed > 2.0:
+    _create_tire_mark_segment(_last_left_pos, left_pos)
+    _create_tire_mark_segment(_last_right_pos, right_pos)
+  
+  _last_left_pos = left_pos
+  _last_right_pos = right_pos
+  _tire_mark_active = true
+
+
+func _create_tire_mark_segment(from_pos: Vector3, to_pos: Vector3) -> void:
+  var direction = to_pos - from_pos
+  var length = direction.length()
+  if length < 0.01:
+    return
+  
+  var mesh_instance = MeshInstance3D.new()
+  var box = BoxMesh.new()
+  box.size = Vector3(0.1, 0.01, length + 0.05)  # Slight overlap for continuity
+  mesh_instance.mesh = box
+  
+  var mat = StandardMaterial3D.new()
+  mat.albedo_color = Color(0.05, 0.05, 0.05, 0.9)
+  mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+  mesh_instance.material_override = mat
+  
+  # Position at midpoint
+  var mid = (from_pos + to_pos) / 2.0
+  mesh_instance.global_position = Vector3(mid.x, 0.005, mid.z)
+  
+  # Orient along direction
+  mesh_instance.rotation.y = atan2(direction.x, direction.z)
+  
+  get_tree().root.add_child(mesh_instance)
+  
+  # Fade and destroy
+  var tween = create_tween()
+  tween.tween_property(mat, "albedo_color:a", 0.0, 1.0).set_delay(3.0)
+  tween.tween_callback(mesh_instance.queue_free)
+
+
+func _reset_tire_marks() -> void:
+  _tire_mark_active = false
+  _last_left_pos = Vector3.ZERO
+  _last_right_pos = Vector3.ZERO
 
 
 # ════════════════════════════════════════════════════════════════════════════

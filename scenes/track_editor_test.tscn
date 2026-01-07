@@ -1,6 +1,6 @@
-[gd_scene load_steps=7 format=3 uid="uid://d4ln3mmns2axc"]
+[gd_scene load_steps=8 format=3 uid="uid://d4ln3mmns2axc"]
 
-[ext_resource type="MeshLibrary" uid="uid://dh6a6aci7fmb2" path="res://racing_kit_meshlib.tres" id="1_88f0t"]
+[ext_resource type="MeshLibrary" uid="uid://do4fgcydwohp5" path="res://racing_kit_meshlib.tres" id="1_88f0t"]
 [ext_resource type="PackedScene" uid="uid://c8qxqkj5xnvfl" path="res://scenes/vehicles/drift_car.tscn" id="2_drift_car"]
 [ext_resource type="Script" uid="uid://clisknmj5tm3i" path="res://scripts/follow_camera.gd" id="3_follow_camera"]
 [ext_resource type="Script" uid="uid://hqcxexlssxyq" path="res://scripts/track_editor_test.gd" id="4_test_controller"]
@@ -12,8 +12,8 @@ size = Vector3(2000, 1, 2000)
 albedo_color = Color(0.3, 0.35, 0.3, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_ground"]
-size = Vector3(2000, 1, 2000)
 material = SubResource("StandardMaterial3D_ground")
+size = Vector3(2000, 1, 2000)
 
 [node name="TrackEditorTest" type="Node3D"]
 script = ExtResource("4_test_controller")
