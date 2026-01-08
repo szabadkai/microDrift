@@ -45,7 +45,9 @@ var current_state: VehicleState = VehicleState.NORMAL
 
 @export_group("Drift")
 ## Minimum speed to enter drift state
-@export var min_drift_speed: float = 3.0
+@export var min_drift_speed: float = 5.0
+## Minimum speed to maintain drift state (drops out if below)
+@export var min_drift_exit_speed: float = 3.0
 ## Lateral friction in NORMAL state (high = grippy, car follows velocity)
 @export var lateral_friction_normal: float = 12.0
 ## Lateral friction in DRIFTING state (low = slidey, car drifts sideways)
@@ -243,9 +245,9 @@ func _process_drifting_state(delta: float) -> void:
   _update_drift_angle()
   _accumulate_charge(delta)
   
-  # Check if drift button released
+  # Check if drift button released or speed too low
   var handbrake = Input.is_action_pressed(input_handbrake)
-  if not handbrake:
+  if not handbrake or current_speed < min_drift_exit_speed:
     _exit_drifting_state()
 
 
