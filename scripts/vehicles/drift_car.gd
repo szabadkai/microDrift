@@ -23,9 +23,9 @@ var current_state: VehicleState = VehicleState.NORMAL
 # ════════════════════════════════════════════════════════════════════════════
 
 @export_group("Speed")
-@export var max_speed: float = 22.0  ## Maximum velocity in m/s
+@export var max_speed: float = 32.0  ## Maximum velocity in m/s
 @export var engine_power: float = 250.0  ## Forward acceleration force
-@export var brake_power: float = 500.0  ## Brake force
+@export var brake_power: float = 100.0  ## Brake force
 @export var reverse_power: float = 120.0  ## Reverse acceleration
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -86,6 +86,12 @@ var current_state: VehicleState = VehicleState.NORMAL
 @export_group("Stability")
 ## Artificial downforce to keep car grounded
 @export var downforce_factor: float = 500.0
+## How quickly brakes ramp up (higher = smoother)
+@export var brake_smoothing: float = 8.0
+## Brake input threshold for wheel lock-up (0.7 = 70% brake locks wheels)
+@export var brake_lock_threshold: float = 0.7
+## How much grip is reduced during brake lock (0.3 = 30% of normal grip)
+@export var brake_lock_grip: float = 0.3
 
 # ════════════════════════════════════════════════════════════════════════════
 # BOOST TIERS (FOR VISUAL FEEDBACK)
@@ -117,6 +123,8 @@ var boost_timer: float = 0.0  ## Remaining boost time
 var drift_angle: float = 0.0  ## Current angle between forward and velocity
 var active_boost_tier: BoostTier = BoostTier.NONE
 var held_powerup: String = ""
+var smoothed_brake: float = 0.0  ## Smoothed brake value to prevent jerky stops
+var is_brake_locked: bool = false  ## True when wheels are locked during hard braking
 
 ## Visual yaw offset for mesh (exaggerated drift angle)
 var visual_yaw_offset: float = 0.0
@@ -184,6 +192,9 @@ func _physics_process(delta: float) -> void:
   match current_state:
     VehicleState.NORMAL:
       _process_normal_state(delta)
+      # Spawn tire marks if brakes are locked
+      if is_brake_locked:
+        _spawn_tire_marks()
     VehicleState.DRIFTING:
       _process_drifting_state(delta)
       _spawn_tire_marks()  # Spawn marks while drifting
@@ -394,6 +405,7 @@ func _apply_lateral_friction(_delta: float) -> void:
   ## THE KEY MECHANIC: Manually control how much the car can slide sideways
   ## In NORMAL: Strong damping keeps car aligned with velocity
   ## In DRIFTING: Weak damping lets car slide sideways
+  ## When brakes locked: Reduced grip for sliding
   ## Using FORCE-BASED approach to work WITH physics engine
   
   var right_dir = global_transform.basis.x
@@ -413,7 +425,11 @@ func _apply_lateral_friction(_delta: float) -> void:
     VehicleState.BOOSTING:
       friction = (lateral_friction_normal + lateral_friction_drifting) / 2.0
     _:
-      friction = lateral_friction_normal
+      # In NORMAL state, check if brakes are locked
+      if is_brake_locked:
+        friction = lateral_friction_normal * brake_lock_grip
+      else:
+        friction = lateral_friction_normal
   
   # Apply a counter-force to reduce lateral velocity
   var damping_force = -right_dir * lateral_speed * friction * mass
@@ -452,13 +468,17 @@ func _handle_throttle(delta: float, power_factor: float) -> void:
   var brake_input = Input.get_action_strength(input_brake)
   
   var forward_dir = -global_transform.basis.z
-  var moving_forward = linear_velocity.dot(forward_dir) > 0.5
+  var forward_speed = linear_velocity.dot(forward_dir)
+  var moving_forward = forward_speed > 0.5
   var nearly_stopped = current_speed < 1.0
   
   # Determine effective max speed (boosted during BOOSTING state)
   var effective_max_speed = max_speed
   if current_state == VehicleState.BOOSTING:
     effective_max_speed = max_speed * boost_max_speed_bonus
+  
+  # Reset VehicleBody3D brake - we'll handle braking with direct forces
+  brake = 0.0
   
   # Apply engine force
   if throttle > 0.0:
@@ -467,19 +487,40 @@ func _handle_throttle(delta: float, power_factor: float) -> void:
       engine_force = -throttle * engine_power * power_factor
     else:
       engine_force = 0.0
-    brake = 0.0
   elif brake_input > 0.0:
     if moving_forward and not nearly_stopped:
       # Braking while moving forward
-      brake = brake_input * brake_power
+      # Use direct force at center of mass instead of wheel brakes to avoid pitching
       engine_force = 0.0
+      
+      # Check if brake is hard enough to lock wheels
+      var was_brake_locked = is_brake_locked
+      is_brake_locked = brake_input >= brake_lock_threshold and current_speed > 5.0
+      
+      # Reset tire marks when brake lock starts (new skid)
+      if is_brake_locked and not was_brake_locked:
+        _reset_tire_marks()
+      
+      # Smooth the brake force
+      var target_brake_force = brake_input * brake_power * mass
+      smoothed_brake = lerp(smoothed_brake, target_brake_force, brake_smoothing * delta)
+      
+      # Apply braking force opposite to velocity direction (at center of mass = no pitch)
+      var brake_force = -linear_velocity.normalized() * smoothed_brake
+      apply_central_force(brake_force)
     else:
       # Reverse
       engine_force = brake_input * reverse_power
-      brake = 0.0
+      smoothed_brake = 0.0
+      if is_brake_locked:
+        _reset_tire_marks()
+      is_brake_locked = false
   else:
     engine_force = 0.0
-    brake = 0.0
+    smoothed_brake = 0.0
+    if is_brake_locked:
+      _reset_tire_marks()
+    is_brake_locked = false
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -542,14 +583,43 @@ func _spawn_tire_marks() -> void:
   var left_pos = rear_left_wheel.global_position if rear_left_wheel else global_position
   var right_pos = rear_right_wheel.global_position if rear_right_wheel else global_position
   
+  # Raycast down to find ground surface for each wheel
+  var left_ground = _get_ground_position(left_pos)
+  var right_ground = _get_ground_position(right_pos)
+  
   # Only draw if we have previous positions and are moving
   if _tire_mark_active and current_speed > 2.0:
-    _create_tire_mark_segment(_last_left_pos, left_pos)
-    _create_tire_mark_segment(_last_right_pos, right_pos)
+    if left_ground != Vector3.ZERO and _last_left_pos != Vector3.ZERO:
+      _create_tire_mark_segment(_last_left_pos, left_ground)
+    if right_ground != Vector3.ZERO and _last_right_pos != Vector3.ZERO:
+      _create_tire_mark_segment(_last_right_pos, right_ground)
   
-  _last_left_pos = left_pos
-  _last_right_pos = right_pos
+  _last_left_pos = left_ground
+  _last_right_pos = right_ground
   _tire_mark_active = true
+
+
+func _get_ground_position(wheel_pos: Vector3) -> Vector3:
+  ## Raycast down from wheel position to find the ground surface
+  var space_state = get_world_3d().direct_space_state
+  if not space_state:
+    return Vector3.ZERO
+  
+  # Cast from slightly above wheel to below
+  var ray_origin = wheel_pos + Vector3.UP * 0.5
+  var ray_end = wheel_pos + Vector3.DOWN * 2.0
+  
+  var query = PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+  query.exclude = [self]  # Don't hit the car itself
+  query.collision_mask = 0xFFFFFFFF  # Hit everything
+  
+  var result = space_state.intersect_ray(query)
+  
+  if result:
+    # Return position slightly above the hit point to avoid z-fighting
+    return result.position + Vector3.UP * 0.005
+  
+  return Vector3.ZERO
 
 
 func _create_tire_mark_segment(from_pos: Vector3, to_pos: Vector3) -> void:
@@ -568,12 +638,18 @@ func _create_tire_mark_segment(from_pos: Vector3, to_pos: Vector3) -> void:
   mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
   mesh_instance.material_override = mat
   
-  # Position at midpoint
+  # Position at midpoint - use actual Y from raycasted positions
   var mid = (from_pos + to_pos) / 2.0
-  mesh_instance.global_position = Vector3(mid.x, 0.005, mid.z)
+  mesh_instance.global_position = mid
   
-  # Orient along direction
+  # Orient along direction (horizontal rotation)
   mesh_instance.rotation.y = atan2(direction.x, direction.z)
+  
+  # Handle slopes - tilt the mark to match ground angle
+  var horizontal_dir = Vector3(direction.x, 0, direction.z).normalized()
+  if horizontal_dir.length_squared() > 0.01:
+    var pitch = atan2(direction.y, Vector2(direction.x, direction.z).length())
+    mesh_instance.rotation.x = pitch
   
   get_tree().root.add_child(mesh_instance)
   
