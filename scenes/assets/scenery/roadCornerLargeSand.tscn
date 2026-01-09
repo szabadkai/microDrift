@@ -1,0 +1,53 @@
+[gd_scene load_steps=5 format=4]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qaxfk"]
+resource_name = "sand"
+albedo_color = Color(0.8977762, 0.8647218, 0.7901486, 1)
+emission_enabled = true
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_gqv36"]
+_surfaces = [{
+"aabb": AABB(-0.53000003, 0, -2.53, 2.53, 1e-05, 2.53),
+"format": 34896613377,
+"index_count": 72,
+"index_data": PackedByteArray("AAABAAIAAgADAAAAAwAEAAAABAAFAAAABQAGAAAABgAHAAAABgAIAAcACAAJAAcACAAKAAkACAALAAoACAAMAAsADAANAAsADAAOAA0ADAAPAA4ADwAQAA4ADwARABAAEQASABAAEQATABIAEQAUABMAFAAVABMAFAAWABUAFgAXABUAFgAYABcAGAAZABcA"),
+"name": "sand",
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 26,
+"vertex_data": PackedByteArray("oDUAAP//AAAAAAAA//8AADACAACU3gAAuQgAAL29AAB8EwAAB54AAEwiAAD/fwAA5jQAACdkAABbNwAAlOUAAPpKAAD6SgAAhTwAAJ7LAAAIRQAAjbIAAL1QAADPmgAAJ2QAAOY0AAByXwAAzYQAAOZwAADmcAAA/38AAEwiAADNhAAAcl8AAAeeAAB8EwAAz5oAAL1QAACNsgAACEUAAL29AAC5CAAAnssAAIU8AACU3gAAMAIAAJTlAABbNwAA//8AAAAAAAD//wAAoDUAAA==")
+}]
+blend_shape_mode = 0
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_14ok5"]
+resource_name = "roadCornerLargeSand_Mesh roadCornerLargeSand"
+_surfaces = [{
+"aabb": AABB(-0.53000003, 0, -2.53, 2.53, 1e-05, 2.53),
+"attribute_data": PackedByteArray("/39LgRReS4F2X2twmGPUX2dq0U/Fc6VAiX+VMheB9HOAjd4lXITXZr2JLlolkTBObZ23GnKaE0N8pQU5Ca9SEROyNTAIwtcJ/7/HKAPP3SIW1mcE3t6RHtzqGwFJ7/Ub//8AAP//FRs="),
+"format": 34896613399,
+"index_count": 72,
+"index_data": PackedByteArray("AAABAAIAAgADAAAAAwAEAAAABAAFAAAABQAGAAAABgAHAAAABgAIAAcACAAJAAcACAAKAAkACAALAAoACAAMAAsADAANAAsADAAOAA0ADAAPAA4ADwAQAA4ADwARABAAEQASABAAEQATABIAEQAUABMAFAAVABMAFAAWABUAFgAXABUAFgAYABcAGAAZABcA"),
+"material": SubResource("StandardMaterial3D_qaxfk"),
+"name": "sand",
+"primitive": 3,
+"uv_scale": Vector4(157.48032, 197.2126, 0, 0),
+"vertex_count": 26,
+"vertex_data": PackedByteArray("oDUAAP///78AAAAA////vzACAACU3v+/uQgAAL29/798EwAAB57/v0wiAAD/f/+/5jQAACdk/79bNwAAlOX/v/pKAAD6Sv+/hTwAAJ7L/78IRQAAjbL/v71QAADPmv+/J2QAAOY0/79yXwAAzYT/v+ZwAADmcP+//38AAEwi/7/NhAAAcl//vweeAAB8E/+/z5oAAL1Q/7+NsgAACEX/v729AAC5CP+/nssAAIU8/7+U3gAAMAL/v5TlAABbN/+///8AAAAA/7///wAAoDX/v////3////9/////f////3////9//v//f/7//3////9//v//f////3/+//9//v//f////3////9/////f////3/+//9//v//f/7//3////9/////f/7//3////9/////f////3////9/")
+}]
+blend_shape_mode = 0
+shadow_mesh = SubResource("ArrayMesh_gqv36")
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_klm1t"]
+data = PackedVector3Array(0, 0, 0, -0.53, 0, 0, -0.50839996, 0, -0.3303, -0.50839996, 0, -0.3303, -0.4438, 0, -0.6548, 0, 0, 0, -0.4438, 0, -0.6548, -0.3374, 0, -0.96819997, 0, 0, 0, -0.3374, 0, -0.96819997, -0.191, 0, -1.265, 0, 0, 0, -0.191, 0, -1.265, -0.0072, 0, -1.5402, 0, 0, 0, -0.0072, 0, -1.5402, 0.017099999, 0, -0.2611, 0, 0, 0, -0.0072, 0, -1.5402, 0.211, 0, -1.7889999, 0.017099999, 0, -0.2611, 0.211, 0, -1.7889999, 0.0681, 0, -0.5177, 0.017099999, 0, -0.2611, 0.211, 0, -1.7889999, 0.1522, 0, -0.7654, 0.0681, 0, -0.5177, 0.211, 0, -1.7889999, 0.2679, 0, -1, 0.1522, 0, -0.7654, 0.211, 0, -1.7889999, 0.45979998, 0, -2.0072, 0.2679, 0, -1, 0.45979998, 0, -2.0072, 0.41329998, 0, -1.2175, 0.2679, 0, -1, 0.45979998, 0, -2.0072, 0.5858, 0, -1.4142, 0.41329998, 0, -1.2175, 0.45979998, 0, -2.0072, 0.73499995, 0, -2.191, 0.5858, 0, -1.4142, 0.73499995, 0, -2.191, 0.78249997, 0, -1.5867, 0.5858, 0, -1.4142, 0.73499995, 0, -2.191, 1.0318, 0, -2.3374, 0.78249997, 0, -1.5867, 1.0318, 0, -2.3374, 1, 0, -1.7321, 0.78249997, 0, -1.5867, 1.0318, 0, -2.3374, 1.2346, 0, -1.8477999, 1, 0, -1.7321, 1.0318, 0, -2.3374, 1.3452, 0, -2.4438, 1.2346, 0, -1.8477999, 1.3452, 0, -2.4438, 1.4822999, 0, -1.9318999, 1.2346, 0, -1.8477999, 1.3452, 0, -2.4438, 1.6696999, 0, -2.5084, 1.4822999, 0, -1.9318999, 1.6696999, 0, -2.5084, 1.7389, 0, -1.9828999, 1.4822999, 0, -1.9318999, 1.6696999, 0, -2.5084, 2, 0, -2.53, 1.7389, 0, -1.9828999, 2, 0, -2.53, 2, 0, -2, 1.7389, 0, -1.9828999)
+
+[node name="roadCornerLargeSand" type="Node3D"]
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.73499995, 0, 1.265)
+mesh = SubResource("ArrayMesh_14ok5")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.73499995, 0, 1.265)
+shape = SubResource("ConcavePolygonShape3D_klm1t")

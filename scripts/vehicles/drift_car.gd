@@ -33,7 +33,7 @@ var current_state: VehicleState = VehicleState.NORMAL
 # ════════════════════════════════════════════════════════════════════════════
 
 @export_group("Steering")
-@export var max_steer_angle: float = 0.35  ## Max wheel angle (radians) - low to force drifting
+@export var max_steer_angle: float = 0.25  ## Max wheel angle (radians) - reduced for realistic turning
 @export var steer_speed: float = 4.0  ## Rate of steering input rise
 @export var steer_return_speed: float = 12.0  ## Rate of steering return to center
 ## In DRIFTING, steering controls angular velocity instead of wheel angle
@@ -64,6 +64,18 @@ var current_state: VehicleState = VehicleState.NORMAL
 @export var min_boost_charge: float = 0.3
 
 # ════════════════════════════════════════════════════════════════════════════
+# NATURAL SLIP SETTINGS - Grip loss at high speed cornering
+# ════════════════════════════════════════════════════════════════════════════
+
+@export_group("Natural Slip")
+## Speed threshold where natural slip can start occurring (m/s)
+@export var slip_speed_threshold: float = 15.0
+## How aggressively grip is lost when above threshold (higher = easier to slip)
+@export var slip_sensitivity: float = 1.5
+## Minimum lateral friction during natural slip (prevents total spinout)
+@export var slip_min_friction: float = 2.0
+
+# ════════════════════════════════════════════════════════════════════════════
 # BOOST TUNING
 # ════════════════════════════════════════════════════════════════════════════
 
@@ -92,6 +104,20 @@ var current_state: VehicleState = VehicleState.NORMAL
 @export var brake_lock_threshold: float = 0.7
 ## How much grip is reduced during brake lock (0.3 = 30% of normal grip)
 @export var brake_lock_grip: float = 0.3
+
+# ════════════════════════════════════════════════════════════════════════════
+# OFF-ROAD SLOWDOWN - Encourages staying on track
+# ════════════════════════════════════════════════════════════════════════════
+
+@export_group("Off-Road")
+## Collision layer for road surfaces (GridMap roads should use this layer)
+@export_flags_3d_physics var road_collision_layer: int = 2
+## Drag force applied when off-road (higher = more slowdown)
+@export var offroad_drag: float = 8.0
+## Acceleration multiplier when off-road (0.3 = 30% power)
+@export var offroad_acceleration: float = 0.3
+## Maximum speed when off-road (as fraction of max_speed)
+@export var offroad_max_speed_factor: float = 0.4
 
 # ════════════════════════════════════════════════════════════════════════════
 # BOOST TIERS (FOR VISUAL FEEDBACK)
@@ -125,6 +151,7 @@ var active_boost_tier: BoostTier = BoostTier.NONE
 var held_powerup: String = ""
 var smoothed_brake: float = 0.0  ## Smoothed brake value to prevent jerky stops
 var is_brake_locked: bool = false  ## True when wheels are locked during hard braking
+var is_on_road: bool = true  ## True when driving on road surface
 
 ## Visual yaw offset for mesh (exaggerated drift angle)
 var visual_yaw_offset: float = 0.0
@@ -179,6 +206,9 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
   current_speed = linear_velocity.length()
   
+  # Check what surface we're on
+  _update_surface_detection()
+  
   # DEBUG: Log inputs for first 3 seconds
   _debug_timer += delta
   if _debug_timer < 3.0 and fmod(_debug_timer, 0.5) < delta:
@@ -204,6 +234,7 @@ func _physics_process(delta: float) -> void:
   # Always apply downforce and lateral control
   _apply_downforce()
   _apply_lateral_friction(delta)
+  _apply_offroad_drag(delta)
   _update_visual_yaw(delta)
   
   # Powerup use (available in any state)
@@ -406,6 +437,7 @@ func _apply_lateral_friction(_delta: float) -> void:
   ## In NORMAL: Strong damping keeps car aligned with velocity
   ## In DRIFTING: Weak damping lets car slide sideways
   ## When brakes locked: Reduced grip for sliding
+  ## At high speed + hard steering: Natural slip occurs
   ## Using FORCE-BASED approach to work WITH physics engine
   
   var right_dir = global_transform.basis.x
@@ -425,11 +457,30 @@ func _apply_lateral_friction(_delta: float) -> void:
     VehicleState.BOOSTING:
       friction = (lateral_friction_normal + lateral_friction_drifting) / 2.0
     _:
-      # In NORMAL state, check if brakes are locked
+      # In NORMAL state, start with full grip
+      friction = lateral_friction_normal
+      
+      # Check if brakes are locked
       if is_brake_locked:
         friction = lateral_friction_normal * brake_lock_grip
       else:
-        friction = lateral_friction_normal
+        # NATURAL SLIP: Reduce grip at high speed when steering hard
+        # This creates realistic "breaking loose" when cornering aggressively
+        if current_speed > slip_speed_threshold:
+          var steer_input = Input.get_action_strength(input_steer_left) - Input.get_action_strength(input_steer_right)
+          var steer_intensity = abs(steer_input)
+          
+          # How far above slip threshold are we? (0 at threshold, 1 at max_speed)
+          var speed_excess = (current_speed - slip_speed_threshold) / (max_speed - slip_speed_threshold)
+          speed_excess = clamp(speed_excess, 0.0, 1.0)
+          
+          # Slip factor: high when both speed and steering are high
+          var slip_factor = speed_excess * steer_intensity * slip_sensitivity
+          slip_factor = clamp(slip_factor, 0.0, 1.0)
+          
+          # Reduce friction based on slip factor
+          # Interpolate between full friction and minimum slip friction
+          friction = lerp(lateral_friction_normal, slip_min_friction, slip_factor)
   
   # Apply a counter-force to reduce lateral velocity
   var damping_force = -right_dir * lateral_speed * friction * mass
@@ -472,10 +523,16 @@ func _handle_throttle(delta: float, power_factor: float) -> void:
   var moving_forward = forward_speed > 0.5
   var nearly_stopped = current_speed < 1.0
   
-  # Determine effective max speed (boosted during BOOSTING state)
+  # Determine effective max speed (boosted during BOOSTING state, reduced off-road)
   var effective_max_speed = max_speed
   if current_state == VehicleState.BOOSTING:
     effective_max_speed = max_speed * boost_max_speed_bonus
+  elif not is_on_road:
+    effective_max_speed = max_speed * offroad_max_speed_factor
+  
+  # Apply off-road power reduction
+  var surface_power_factor = _get_offroad_power_factor()
+  var final_power = power_factor * surface_power_factor
   
   # Reset VehicleBody3D brake - we'll handle braking with direct forces
   brake = 0.0
@@ -484,7 +541,7 @@ func _handle_throttle(delta: float, power_factor: float) -> void:
   if throttle > 0.0:
     # Only accelerate if below max speed
     if current_speed < effective_max_speed:
-      engine_force = -throttle * engine_power * power_factor
+      engine_force = -throttle * engine_power * final_power
     else:
       engine_force = 0.0
   elif brake_input > 0.0:
@@ -712,3 +769,69 @@ func get_drift_angle() -> float:
 ## Check if currently boosting (for camera FOV effects)
 func is_boosting() -> bool:
   return current_state == VehicleState.BOOSTING
+
+
+## Check if currently on road surface
+func is_on_road_surface() -> bool:
+  return is_on_road
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# SURFACE DETECTION & OFF-ROAD HANDLING
+# ════════════════════════════════════════════════════════════════════════════
+
+func _update_surface_detection() -> void:
+  ## Raycast down to detect what surface we're driving on
+  ## Road surfaces should be on collision layer 2
+  
+  var space_state = get_world_3d().direct_space_state
+  if not space_state:
+    is_on_road = true  # Default to on-road if we can't check
+    return
+  
+  # Cast from center of car downward
+  var ray_origin = global_position + Vector3.UP * 0.5
+  var ray_end = global_position + Vector3.DOWN * 2.0
+  
+  var query = PhysicsRayQueryParameters3D.create(ray_origin, ray_end)
+  query.exclude = [self]
+  # Check for road layer specifically
+  query.collision_mask = road_collision_layer
+  
+  var result = space_state.intersect_ray(query)
+  
+  # If we hit something on the road layer, we're on road
+  is_on_road = result.size() > 0
+
+
+func _apply_offroad_drag(_delta: float) -> void:
+  ## Apply drag force when off-road to significantly slow the car
+  ## This encourages players to stay on the track
+  
+  if is_on_road:
+    return  # No extra drag on road
+  
+  if current_speed < 0.5:
+    return  # Don't apply at very low speeds
+  
+  # Calculate off-road max speed
+  var offroad_max = max_speed * offroad_max_speed_factor
+  
+  # If we're above the off-road max speed, apply strong braking
+  if current_speed > offroad_max:
+    var excess_speed_factor = (current_speed - offroad_max) / (max_speed - offroad_max)
+    var drag_multiplier = 1.0 + excess_speed_factor * 2.0  # Extra drag when way over limit
+    var drag_force = -linear_velocity.normalized() * offroad_drag * mass * drag_multiplier
+    apply_central_force(drag_force)
+  else:
+    # Even below max, apply some drag to make it feel sluggish
+    var drag_force = -linear_velocity.normalized() * offroad_drag * 0.5 * mass
+    apply_central_force(drag_force)
+
+
+func _get_offroad_power_factor() -> float:
+  ## Returns acceleration multiplier based on surface
+  ## Called by _handle_throttle to reduce power off-road
+  if is_on_road:
+    return 1.0
+  return offroad_acceleration

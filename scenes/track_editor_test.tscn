@@ -1,9 +1,12 @@
-[gd_scene load_steps=8 format=3 uid="uid://d4ln3mmns2axc"]
+[gd_scene load_steps=11 format=3 uid="uid://d4ln3mmns2axc"]
 
 [ext_resource type="MeshLibrary" uid="uid://do4fgcydwohp5" path="res://racing_kit_meshlib.tres" id="1_88f0t"]
 [ext_resource type="PackedScene" uid="uid://c8qxqkj5xnvfl" path="res://scenes/vehicles/drift_car.tscn" id="2_drift_car"]
 [ext_resource type="Script" uid="uid://clisknmj5tm3i" path="res://scripts/follow_camera.gd" id="3_follow_camera"]
 [ext_resource type="Script" uid="uid://hqcxexlssxyq" path="res://scripts/track_editor_test.gd" id="4_test_controller"]
+[ext_resource type="MeshLibrary" uid="uid://c28rjheumw66c" path="res://scenery_meshlib.tres" id="5_bnc1g"]
+[ext_resource type="Script" uid="uid://b70jonfxgfs3g" path="res://scripts/race_manager.gd" id="6_race_mgr"]
+[ext_resource type="PackedScene" uid="uid://dhccc80k1u0vc" path="res://scenes/objects/checkpoint.tscn" id="7_checkpoint"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(2000, 1, 2000)
@@ -18,15 +21,19 @@ size = Vector3(2000, 1, 2000)
 [node name="TrackEditorTest" type="Node3D"]
 script = ExtResource("4_test_controller")
 
+[node name="RaceManager" type="Node" parent="."]
+script = ExtResource("6_race_mgr")
+checkpoint_count = 4
+
 [node name="GridMap" type="GridMap" parent="."]
 transform = Transform3D(16, 0, 0, 0, 16, 0, 0, 0, 16, 0, 0, 0)
 mesh_library = ExtResource("1_88f0t")
 cell_size = Vector3(1, 0.5, 1)
 cell_center_y = false
-collision_layer = 255
+collision_layer = 3
 collision_mask = 255
 data = {
-"cells": PackedInt32Array(20, 65499, 1441810, 65526, 8, 1441804, 65527, 7, 1048601, 65527, 9, 1441817, 65528, 7, 1048601, 65528, 9, 1441817, 65529, 7, 1048601, 65529, 9, 1441817, 65530, 7, 1048601, 65530, 9, 1441817, 65531, 7, 1048601, 65531, 9, 1441814, 65532, 2, 655379, 65532, 3, 655385, 65532, 4, 655385, 65532, 5, 655385, 65532, 6, 655385, 65532, 7, 19, 65532, 9, 1441817, 65533, 2, 1441817, 65533, 9, 1441817, 65534, 2, 1441817, 65534, 9, 1441817, 65535, 2, 1441817, 0, 2, 1441817, 0, 10, 1048608, 1, 2, 1441817, 2, 2, 1441817, 2, 13, 1441824, 3, 2, 1441817, 4, 2, 1048598, 4, 14, 1048601, 5, 2, 1441817, 5, 14, 1441814, 6, 2, 1441817, 6, 14, 1048601, 7, 2, 1441817, 8, 2, 1441794, 8, 13, 32, 9, 2, 1048601, 9, 9, 25, 9, 10, 25, 9, 11, 25, 10, 2, 1048601, 10, 7, 655392, 11, 2, 1048601, 12, 2, 1048601, 12, 6, 1441814, 13, 2, 1048601, 13, 6, 1441817, 14, 6, 1441817, 15, 3, 1048608, 15, 6, 1048601, 16, 5, 655385, 16, 6, 19)
+"cells": PackedInt32Array(20, 65499, 1441810, 65526, 8, 1441804, 65528, 7, 1048601, 65528, 9, 1441817, 65529, 7, 1048601, 65529, 9, 1441817, 65530, 7, 1048601, 65530, 9, 1441817, 65531, 7, 1048601, 65531, 9, 1441814, 65532, 2, 655379, 65532, 3, 655385, 65532, 4, 655385, 65532, 5, 655385, 65532, 6, 655385, 65532, 7, 19, 65532, 9, 1441817, 65533, 2, 1441817, 65533, 9, 1441817, 65534, 2, 1441817, 65534, 9, 1441817, 65535, 2, 1441817, 0, 2, 1441817, 0, 10, 1048608, 1, 2, 1441817, 2, 2, 1441817, 2, 13, 1441824, 3, 2, 1441817, 4, 2, 1048598, 4, 14, 1048601, 5, 2, 1441817, 5, 14, 1441814, 6, 2, 1441817, 6, 14, 1048601, 7, 2, 1441817, 8, 2, 1441794, 8, 13, 32, 9, 2, 1048601, 9, 9, 25, 9, 10, 25, 9, 11, 25, 10, 2, 1048601, 10, 7, 655392, 11, 2, 1048601, 12, 2, 1048601, 12, 6, 1441814, 13, 2, 1048601, 13, 6, 1441817, 14, 6, 1441817, 15, 3, 1048608, 15, 6, 1048601, 16, 5, 655385, 16, 6, 19, 65527, 9, 1441814, 65527, 7, 1048598)
 }
 metadata/_editor_floor_ = Vector3(0, 0, 0)
 
@@ -47,7 +54,7 @@ fov = 50.0
 script = ExtResource("3_follow_camera")
 target_path = NodePath("../Player1Car")
 follow_speed = 6.0
-camera_angle = Vector3(-85, 0, 0)
+camera_angle = Vector3(-80, 0, 0)
 
 [node name="DebugUI" type="CanvasLayer" parent="."]
 
@@ -72,11 +79,79 @@ offset_right = 200.0
 offset_bottom = 110.0
 text = "Boost: None"
 
+[node name="LapLabel" type="Label" parent="DebugUI"]
+offset_left = 20.0
+offset_top = 120.0
+offset_right = 200.0
+offset_bottom = 150.0
+text = "Lap: 1/3"
+
+[node name="TimeLabel" type="Label" parent="DebugUI"]
+offset_left = 20.0
+offset_top = 150.0
+offset_right = 200.0
+offset_bottom = 180.0
+text = "Time: 0:00.00"
+
+[node name="SurfaceLabel" type="Label" parent="DebugUI"]
+offset_left = 20.0
+offset_top = 180.0
+offset_right = 200.0
+offset_bottom = 210.0
+text = "Surface: Road"
+
+[node name="CountdownLabel" type="Label" parent="DebugUI"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -50.0
+offset_right = 100.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 72
+text = "3"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="GroundPlane" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.4, 0)
+collision_mask = 255
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="GroundPlane"]
 shape = SubResource("BoxShape3D_ground")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="GroundPlane"]
 mesh = SubResource("BoxMesh_ground")
+
+[node name="Scenery" type="GridMap" parent="."]
+transform = Transform3D(16, 0, 0, 0, 16, 0, 0, 0, 16, 0, -2, 0)
+mesh_library = ExtResource("5_bnc1g")
+cell_size = Vector3(0.1, 0.1, 0.1)
+collision_layer = 0
+collision_mask = 0
+data = {
+"cells": PackedInt32Array(12, 3, 1441854, 29, 4, 25, 4, 50, 1048595, 26, 4, 31, 27, 4, 31, 30, 4, 31, 34, 4, 31, 38, 5, 31, 43, 5, 31, 47, 6, 31, 52, 8, 31, 53, 8, 31, 54, 9, 31, 55, 9, 31, 55, 10, 31, 54, 10, 31, 53, 10, 31, 51, 10, 31, 48, 9, 31, 43, 9, 31, 37, 8, 31, 31, 6, 31, 25, 5, 31, 21, 4, 31, 18, 3, 31, 17, 3, 31, 16, 3, 31, 24, 5, 31, 27, 6, 31, 31, 7, 31, 35, 8, 31, 40, 9, 31, 44, 10, 31, 49, 11, 31, 53, 12, 31, 56, 12, 31, 58, 12, 31, 60, 13, 31, 61, 13, 31, 179, 142, 31, 49, 7, 31, 65513, 43, 1048596, 65508, 74, 1048612, 65529, 18, 36, 44, 17, 36, 45, 47, 1441828, 150, 44, 655396, 159, 19, 655396, 171, 45, 655396, 171, 63, 655396, 153, 77, 655396, 131, 76, 655396, 110, 80, 655396, 86, 92, 655396, 86, 122, 655396, 98, 145, 655396, 72, 166, 655396, 64, 135, 655396, 56, 139, 655396, 50, 158, 655396, 59, 137, 655396, 63, 138, 655396, 68, 138, 655396, 72, 132, 655396, 74, 136, 655396, 77, 133, 655396, 82, 132, 655396, 84, 128, 655396, 94, 153, 655396, 90, 152, 655396, 84, 160, 655396, 30, 160, 655396, 23, 152, 655396, 7, 144, 655396, 7, 125, 655396, 3, 115, 655396, 65533, 113, 655396, 8, 90, 655396, 15, 98, 655396, 17, 105, 655396, 21, 111, 655396, 22, 103, 655396, 65509, 106, 655396, 65493, 106, 655396, 65479, 106, 655396, 65478, 86, 655396, 65464, 85, 655396, 65459, 87, 655396, 65443, 108, 655396, 65436, 101, 655396, 65429, 93, 655396, 65437, 72, 655396, 65454, 65, 655396, 65466, 66, 655396, 65448, 68, 655396, 65494, 68, 655396, 65493, 60, 655396, 65506, 78, 655396, 65507, 83, 655396, 65516, 84, 655396, 65512, 82, 655396, 65532, 35, 655396, 17, 37, 655396, 65495, 23, 655396, 65497, 20, 655396, 65499, 21, 655396, 65502, 19, 655396, 65495, 27, 655390, 65507, 18, 655390, 65529, 32, 655390, 65535, 35, 655390, 14, 37, 655390, 42, 19, 655390, 48, 16, 655390, 93, 19, 1048606, 97, 18, 1048606, 95, 16, 1048606, 87, 18, 1048606, 107, 19, 1048606, 118, 20, 1048606, 124, 17, 1048606, 130, 20, 1048606, 127, 18, 1048606, 123, 18, 1048606, 120, 19, 1048606, 114, 20, 1048606, 109, 16, 1048606, 111, 18, 1048606, 104, 18, 1048612, 116, 17, 1048612, 131, 18, 1048612, 90, 18, 1048612, 151, 75, 1048606, 156, 76, 1048606, 171, 66, 1048606, 169, 68, 1048606, 173, 45, 1048606, 173, 46, 1048606, 172, 49, 1048606, 152, 48, 1048606, 154, 44, 1048606, 133, 78, 1048606, 110, 81, 1048606, 104, 86, 1048606, 114, 80, 1048606, 107, 88, 1048606, 106, 79, 1048606, 88, 95, 1048606, 87, 102, 1048606, 85, 98, 1048606, 99, 138, 1048606, 94, 146, 1048606, 92, 152, 1048606, 91, 157, 1048606, 88, 157, 1048606, 78, 164, 1048606, 81, 160, 1048606, 82, 163, 1048606, 75, 164, 1048606, 71, 138, 1048606, 79, 136, 1048606, 55, 159, 1048606, 53, 160, 1048606, 44, 162, 1048606, 33, 160, 1048606, 36, 153, 1048606, 41, 155, 1048606, 8, 129, 1048606, 5, 119, 1048606, 7, 114, 1048606, 0, 109, 1048606, 65513, 103, 1048606, 65506, 104, 1048606, 65496, 108, 1048606, 65487, 104, 1048606, 65475, 104, 1048606, 65476, 88, 1048606, 65471, 87, 1048606, 65466, 87, 1048606, 65462, 89, 1048606, 65459, 67, 1048606, 65439, 72, 1048606, 65436, 75, 1048606, 65434, 92, 1048606, 65440, 99, 1048606, 65446, 105, 1048606, 65471, 69, 1048606, 65489, 70, 1048606, 65491, 64, 1048606, 65533, 19, 1048606, 65525, 18, 1048606, 42, 42, 1048606, 49, 42, 1048606, 49, 48, 1048606, 83, 17, 1048606, 153, 18, 1048606, 161, 21, 1048606, 163, 25, 1048606, 156, 21, 1048606, 171, 53, 1048606, 127, 74, 1048606, 12, 146, 1048606, 9, 139, 1048606, 19, 150, 1048606, 29, 152, 1048606, 22, 38, 1048606, 65478, 67, 1048606, 156, 48, 1048606)
+}
+
+[node name="Checkpoints" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 101.904785, 0, 127.640015)
+
+[node name="StartFinish" parent="Checkpoints" instance=ExtResource("7_checkpoint")]
+transform = Transform3D(0.046077814, 0, -0.99893785, 0, 1, 0, 0.99893785, 0, 0.046077814, -106.97443, 0, -99.29651)
+is_start_finish = true
+
+[node name="Checkpoint1" parent="Checkpoints" instance=ExtResource("7_checkpoint")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 126.29382, 0, -74.92407)
+index = 1
+
+[node name="Checkpoint2" parent="Checkpoints" instance=ExtResource("7_checkpoint")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35.757324, 0, 46.61084)
+index = 2
+
+[node name="Checkpoint3" parent="Checkpoints" instance=ExtResource("7_checkpoint")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, -222.04126, 0, 9.790405)
+index = 3
