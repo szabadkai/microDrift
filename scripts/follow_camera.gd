@@ -1,16 +1,19 @@
 extends Camera3D
 class_name FollowCamera
 
-## Dead-zone camera that tracks the car when it moves outside the center area
+## Camera that tracks a target - supports both dead-zone and chase modes
 
 @export_node_path("Node3D") var target_path: NodePath
-@export var height: float = 35.0  # Camera height above the ground (higher = smaller cars)
-@export var follow_speed: float = 4.0  # How quickly camera catches up when tracking
+@export var height: float = 35.0  # Camera height above the target
+@export var follow_speed: float = 4.0  # How quickly camera catches up
 @export var dead_zone_ratio: float = 0.5  # Center 50% is the dead zone (0.0-1.0)
-@export var camera_angle: Vector3 = Vector3(-75, 0, 0)  # Static camera angle (pitch, yaw, roll)
+@export var camera_angle: Vector3 = Vector3(-75, 0, 0)  # Camera pitch angle
+@export var chase_mode: bool = false  # If true, follow behind the car's heading
+@export var chase_distance: float = 8.0  # Distance behind the car in chase mode
 
 var target: Node3D
 var camera_focus: Vector3  # The point on the ground the camera is centered on
+var current_yaw: float = 0.0  # Smoothed yaw for chase mode
 
 
 func _ready() -> void:
@@ -22,6 +25,7 @@ func _ready() -> void:
     # Start centered on the target
     camera_focus = target.global_position
     camera_focus.y = 0  # Keep focus on ground level
+    current_yaw = target.rotation.y
     _update_camera_transform()
 
 
@@ -29,6 +33,30 @@ func _physics_process(delta: float) -> void:
   if not target:
     return
   
+  if chase_mode:
+    _update_chase_camera(delta)
+  else:
+    _update_deadzone_camera(delta)
+
+
+func _update_chase_camera(delta: float) -> void:
+  # Smoothly follow the car's yaw
+  var target_yaw = target.rotation.y
+  current_yaw = lerp_angle(current_yaw, target_yaw, follow_speed * delta)
+  
+  # Calculate position behind the car
+  var back_direction = Vector3(sin(current_yaw), 0, cos(current_yaw))
+  var target_pos = target.global_position
+  
+  # Position camera behind and above
+  var camera_pos = target_pos + back_direction * chase_distance + Vector3(0, height, 0)
+  global_position = global_position.lerp(camera_pos, follow_speed * delta)
+  
+  # Look at the car
+  look_at(target_pos + Vector3(0, 1, 0), Vector3.UP)
+
+
+func _update_deadzone_camera(delta: float) -> void:
   # Get target position on the ground plane
   var target_pos = target.global_position
   target_pos.y = 0  # Project to ground level
@@ -37,12 +65,11 @@ func _physics_process(delta: float) -> void:
   var offset_from_center = target_pos - camera_focus
   
   # Calculate the visible area bounds based on camera height and angle
-  # This is an approximation based on the camera's view
   var view_distance = height / tan(deg_to_rad(-camera_angle.x))
-  var half_width = view_distance * 0.8  # Approximate visible width
-  var half_depth = view_distance * 0.6  # Approximate visible depth
+  var half_width = view_distance * 0.8
+  var half_depth = view_distance * 0.6
   
-  # Dead zone bounds (center 50% of view)
+  # Dead zone bounds
   var dead_zone_half_width = half_width * dead_zone_ratio
   var dead_zone_half_depth = half_depth * dead_zone_ratio
   

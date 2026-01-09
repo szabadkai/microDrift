@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cj3kx8m2y5h6n"]
+
+[ext_resource type="Script" uid="uid://cnxm5kt7ypfra" path="res://scripts/tools/add_nature_to_meshlib.gd" id="1_nature_gen"]
+
+[node name="NatureMeshLibRunner" type="Node"]
+script = ExtResource("1_nature_gen")

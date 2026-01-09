@@ -96,8 +96,12 @@ var current_state: VehicleState = VehicleState.NORMAL
 # ════════════════════════════════════════════════════════════════════════════
 
 @export_group("Stability")
-## Artificial downforce to keep car grounded
-@export var downforce_factor: float = 500.0
+## Artificial downforce to keep car grounded (scales with speed)
+@export var downforce_factor: float = 400.0
+## Base downforce applied at all times (prevents floating/bouncing)
+@export var base_downforce: float = 300.0
+## Anti-roll stabilization strength (damps X/Z angular velocity)
+@export var anti_roll_strength: float = 8.0
 ## How quickly brakes ramp up (higher = smoother)
 @export var brake_smoothing: float = 8.0
 ## Brake input threshold for wheel lock-up (0.7 = 70% brake locks wheels)
@@ -585,9 +589,21 @@ func _handle_throttle(delta: float, power_factor: float) -> void:
 # ════════════════════════════════════════════════════════════════════════════
 
 func _apply_downforce() -> void:
-  ## Artificial gravity to keep the car grounded at high speeds
+  ## Artificial gravity to keep the car grounded at all times
+  ## Base downforce prevents floating, speed-scaled downforce keeps car planted at high speeds
   var speed_factor = clamp(current_speed / max_speed, 0.0, 1.0)
-  apply_central_force(Vector3.DOWN * downforce_factor * speed_factor)
+  var total_downforce = base_downforce + (downforce_factor * speed_factor)
+  apply_central_force(Vector3.DOWN * total_downforce)
+  
+  ## Anti-roll stabilization: Damp angular velocity on X and Z axes
+  ## This prevents the car from rolling over during hard cornering
+  ## Y axis is left alone to allow drifting rotation
+  var roll_damping = Vector3(
+    -angular_velocity.x * anti_roll_strength * mass,
+    0.0,  # Don't damp Y - that's for steering/drifting
+    -angular_velocity.z * anti_roll_strength * mass
+  )
+  apply_torque(roll_damping)
 
 
 func _update_visual_yaw(delta: float) -> void:
