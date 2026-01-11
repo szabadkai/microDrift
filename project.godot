@@ -19,6 +19,10 @@ config/icon="res://icon.svg"
 
 MusicManager="*res://scripts/music_manager.gd"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/vegetation_painter/plugin.cfg")
+
 [input]
 
 p1_accelerate={

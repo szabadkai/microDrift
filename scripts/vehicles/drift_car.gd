@@ -37,21 +37,21 @@ var current_state: VehicleState = VehicleState.NORMAL
 @export var steer_speed: float = 4.0  ## Rate of steering input rise
 @export var steer_return_speed: float = 12.0  ## Rate of steering return to center
 ## In DRIFTING, steering controls angular velocity instead of wheel angle
-@export var drift_angular_speed: float = 4.0  ## Rotation rate while drifting (rad/s)
+@export var drift_angular_speed: float = 7.0  ## Rotation rate while drifting (rad/s) - GYMKHANA: high for quick whips
 
 # ════════════════════════════════════════════════════════════════════════════
 # DRIFT TUNING - THE CORE EXPLICIT DRIFT SETTINGS
 # ════════════════════════════════════════════════════════════════════════════
 
 @export_group("Drift")
-## Minimum speed to enter drift state
-@export var min_drift_speed: float = 5.0
+## Minimum speed to enter drift state - GYMKHANA: low for donuts!
+@export var min_drift_speed: float = 2.0
 ## Minimum speed to maintain drift state (drops out if below)
-@export var min_drift_exit_speed: float = 3.0
+@export var min_drift_exit_speed: float = 1.0
 ## Lateral friction in NORMAL state (high = grippy, car follows velocity)
 @export var lateral_friction_normal: float = 12.0
-## Lateral friction in DRIFTING state (low = slidey, car drifts sideways)
-@export var lateral_friction_drifting: float = 0.3
+## Lateral friction in DRIFTING state (moderate = can still steer through turns)
+@export var lateral_friction_drifting: float = 0.5
 ## Forward acceleration multiplier during drift (reduced for balance)
 @export var drift_acceleration_factor: float = 0.5
 ## Minimum drift angle (degrees) to accumulate charge
@@ -151,6 +151,7 @@ var drift_charge: float = 0.0  ## Current charge level
 var current_speed: float = 0.0  ## Cached speed magnitude
 var boost_timer: float = 0.0  ## Remaining boost time
 var drift_angle: float = 0.0  ## Current angle between forward and velocity
+var _drift_time: float = 0.0  ## Time spent in current drift (for two-phase system)
 var active_boost_tier: BoostTier = BoostTier.NONE
 var held_powerup: String = ""
 var smoothed_brake: float = 0.0  ## Smoothed brake value to prevent jerky stops
@@ -272,13 +273,57 @@ func _process_normal_state(delta: float) -> void:
 # ════════════════════════════════════════════════════════════════════════════
 
 func _process_drifting_state(delta: float) -> void:
+  # Track how long we've been in drift
+  _drift_time += delta
+  
   # In DRIFTING: steering controls angular velocity, not wheel angle
   var steer_input = Input.get_action_strength(input_steer_left) - Input.get_action_strength(input_steer_right)
   
+  # TWO-PHASE DRIFT: Aggressive snap-in, then stable cruise
+  var is_snap_phase = _drift_time < 0.3  # First 0.3 seconds = aggressive entry
+  
+  # GYMKHANA: Counter-steer whip bonus - when you switch directions, get extra kick!
+  var counter_steer_bonus = 1.0
+  if sign(steer_input) != 0 and sign(steer_input) != sign(angular_velocity.y):
+    counter_steer_bonus = 1.6 if is_snap_phase else 1.3  # Stronger whip during entry
+  
+  # Choose angular speed based on phase
+  var effective_angular_speed: float
+  var lerp_rate: float
+  
+  if is_snap_phase:
+    # SNAP PHASE: Aggressive rotation for quick entries
+    effective_angular_speed = drift_angular_speed
+    lerp_rate = 12.0
+  else:
+    # SUSTAINED PHASE: Stable, controllable long drifts
+    effective_angular_speed = drift_angular_speed * 0.5  # Half speed for control
+    lerp_rate = 6.0  # Smoother transitions
+    
+    # AUTO-STABILIZE: When not steering, gently maintain current angle
+    if abs(steer_input) < 0.1:
+      # Dampen rotation to hold the current drift angle
+      angular_velocity.y = lerp(angular_velocity.y, 0.0, 3.0 * delta)
+  
   # Apply angular velocity for rotation
-  # This makes the car rotate without necessarily changing velocity direction
-  var target_angular = steer_input * drift_angular_speed
-  angular_velocity.y = lerp(angular_velocity.y, target_angular, 8.0 * delta)
+  var target_angular = steer_input * effective_angular_speed * counter_steer_bonus
+  if abs(steer_input) > 0.1:  # Only apply when steering
+    angular_velocity.y = lerp(angular_velocity.y, target_angular, lerp_rate * delta)
+  
+  # ═══════════════════════════════════════════════════════════════════════════
+  # CRITICAL: CONTINUOUS OUTWARD DRIFT FORCE
+  # This is what creates the actual SIDEWAYS SLIDING during drift!
+  # We apply a constant lateral force that pushes the rear end out
+  # ═══════════════════════════════════════════════════════════════════════════
+  var right_dir = global_transform.basis.x
+  var drift_direction = sign(angular_velocity.y) if abs(angular_velocity.y) > 0.1 else sign(steer_input)
+  
+  if abs(drift_direction) > 0.1 and current_speed > 2.0:
+    # Outward force scales with speed, but CAPPED to prevent high-speed spinouts
+    var capped_speed = min(current_speed, 15.0)  # Cap at 15 m/s worth of force
+    var drift_force_strength = capped_speed * 25.0
+    var outward_force = right_dir * drift_direction * drift_force_strength
+    apply_central_force(outward_force)
   
   # Wheels still turn visually but with less effect
   _handle_steering(delta, 0.3)
@@ -365,20 +410,27 @@ func _enter_drifting_state() -> void:
   print(">>> ENTERING DRIFT STATE <<<")
   current_state = VehicleState.DRIFTING
   drift_charge = 0.0
+  _drift_time = 0.0  # Reset drift timer for two-phase system
   
   # Reset tire marks so this drift session starts completely fresh
   _reset_tire_marks()
   
-  # ARCADE: Reduce rear wheel friction for slides (but not too low)
-  _set_rear_wheel_friction(0.4)
+  # Reduce wheel friction for sliding, but keep enough to steer
+  _set_all_wheel_friction(0.8)
   
-  # ARCADE: Apply initial rotation kick based on steering direction
-  # This makes the car SNAP into a sideways drift angle immediately
   var steer_input = Input.get_action_strength(input_steer_left) - Input.get_action_strength(input_steer_right)
+  
+  # Apply rotation kick to initiate drift angle - gentle entry
   if abs(steer_input) > 0.1:
-    # Moderate kick - enough to initiate drift without spinning
-    var kick_strength = 1.5 * sign(steer_input)
+    # Gentle rotation kick - just nudges into drift
+    var kick_strength = 0.8 * sign(steer_input)
     angular_velocity.y = kick_strength
+  else:
+    # Small kick for e-brake slides without steering
+    var vel_dir = Vector3(linear_velocity.x, 0, linear_velocity.z).normalized()
+    var forward_dir = -global_transform.basis.z
+    var cross = forward_dir.cross(vel_dir).y
+    angular_velocity.y = sign(cross) * 1.0 if abs(cross) > 0.1 else 0.0
   
   drift_started.emit()
   state_changed.emit(VehicleState.DRIFTING)
@@ -389,8 +441,8 @@ func _exit_drifting_state() -> void:
   var tier = _get_boost_tier(drift_charge)
   drift_ended.emit(drift_charge, tier)
   
-  # Restore rear wheel friction
-  _set_rear_wheel_friction(3.5)
+  # Restore wheel friction
+  _set_all_wheel_friction(3.5)
   
   if drift_charge >= min_boost_charge:
     _enter_boosting_state(tier)
@@ -631,6 +683,18 @@ func _update_visual_yaw(delta: float) -> void:
 # ════════════════════════════════════════════════════════════════════════════
 
 func _set_rear_wheel_friction(friction: float) -> void:
+  if rear_left_wheel:
+    rear_left_wheel.wheel_friction_slip = friction
+  if rear_right_wheel:
+    rear_right_wheel.wheel_friction_slip = friction
+
+
+func _set_all_wheel_friction(friction: float) -> void:
+  ## Sets friction on ALL wheels - used during drift for maximum slide
+  if front_left_wheel:
+    front_left_wheel.wheel_friction_slip = friction
+  if front_right_wheel:
+    front_right_wheel.wheel_friction_slip = friction
   if rear_left_wheel:
     rear_left_wheel.wheel_friction_slip = friction
   if rear_right_wheel:

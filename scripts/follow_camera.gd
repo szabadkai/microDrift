@@ -40,11 +40,25 @@ func _physics_process(delta: float) -> void:
 
 
 func _update_chase_camera(delta: float) -> void:
-  # Smoothly follow the car's yaw
-  var target_yaw = target.rotation.y
-  current_yaw = lerp_angle(current_yaw, target_yaw, follow_speed * delta)
+  # Get target's velocity for drift-aware camera
+  var velocity_yaw = target.rotation.y  # Default to car's rotation
   
-  # Calculate position behind the car
+  # If target is a DriftCar, follow VELOCITY direction during drift
+  # This lets the player SEE the sideways sliding!
+  if target is DriftCar:
+    var drift_car = target as DriftCar
+    var velocity = drift_car.linear_velocity
+    var horizontal_vel = Vector3(velocity.x, 0, velocity.z)
+    
+    # If moving fast enough, use velocity direction
+    if horizontal_vel.length() > 3.0:
+      velocity_yaw = atan2(-horizontal_vel.x, -horizontal_vel.z)
+  
+  # Smoothly follow - SLOWER during drift to show the slide
+  var effective_follow_speed = follow_speed * 0.6  # Slower rotation helps see drift
+  current_yaw = lerp_angle(current_yaw, velocity_yaw, effective_follow_speed * delta)
+  
+  # Calculate position behind the car (based on velocity direction, not car facing)
   var back_direction = Vector3(sin(current_yaw), 0, cos(current_yaw))
   var target_pos = target.global_position
   

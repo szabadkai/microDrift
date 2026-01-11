@@ -1,0 +1,176 @@
+[gd_scene load_steps=5 format=3 uid="uid://dh2vk8qr3nmxy"]
+
+[ext_resource type="Script" path="res://scripts/ui/racing_hud.gd" id="1_hud"]
+[ext_resource type="Script" path="res://scripts/ui/rpm_gauge.gd" id="2_rpm"]
+[ext_resource type="Script" path="res://scripts/ui/drift_charge_bar.gd" id="3_drift"]
+[ext_resource type="Script" path="res://scripts/ui/speed_display.gd" id="4_speed"]
+
+[node name="RacingHUD" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="DriftBar" type="Control" parent="."]
+custom_minimum_size = Vector2(320, 120)
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = -140.0
+offset_right = 360.0
+offset_bottom = -20.0
+grow_vertical = 0
+script = ExtResource("3_drift")
+
+[node name="ChargeLabel" type="Label" parent="DriftBar"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 50.0
+offset_bottom = 90.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.9, 0.9, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 32
+text = "0%"
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="DriftBar"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 85.0
+offset_bottom = 115.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.2, 0.9, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 20
+text = ""
+horizontal_alignment = 1
+
+[node name="TitleLabel" type="Label" parent="DriftBar"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = -10.0
+offset_bottom = 15.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 18
+text = "DRIFT"
+horizontal_alignment = 1
+
+[node name="RPMGauge" type="Control" parent="."]
+custom_minimum_size = Vector2(320, 200)
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -160.0
+offset_top = -220.0
+offset_right = 160.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+script = ExtResource("2_rpm")
+
+[node name="RPMLabel" type="Label" parent="RPMGauge"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -80.0
+offset_top = -50.0
+offset_right = 80.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.9, 0.9, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 36
+text = "800"
+horizontal_alignment = 1
+vertical_alignment = 2
+
+[node name="TitleLabel" type="Label" parent="RPMGauge"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -16.0
+offset_right = 50.0
+offset_bottom = 10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 18
+text = "RPM"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpeedDisplay" type="Control" parent="."]
+custom_minimum_size = Vector2(280, 200)
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -220.0
+offset_right = -40.0
+offset_bottom = -20.0
+grow_horizontal = 0
+grow_vertical = 0
+script = ExtResource("4_speed")
+
+[node name="SpeedLabel" type="Label" parent="SpeedDisplay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = -50.0
+offset_right = 140.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 80
+text = "0"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="UnitLabel" type="Label" parent="SpeedDisplay"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -35.0
+offset_right = 50.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.6, 0.6, 0.7, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 24
+text = "km/h"
+horizontal_alignment = 1
+vertical_alignment = 1
